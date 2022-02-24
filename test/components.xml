@@ -49,33 +49,23 @@
     c_expected_log_record_number number := 3;
     
     v_actual_count number;
-    v_integration_run_id integration_run.integration_run_id%type;
-    v_integration_log_level integration.log_level%type;
-    v_record_count number;
     v_integration_name integration.integration_name%type;
 begin
     
-    select log_level,
-           integration_name
-      into v_integration_log_level,
-           v_integration_name
+    select integration_name
+      into v_integration_name
       from integration
      where integration_id = :id_num;
-    
-    if v_integration_log_level = 3 or v_integration_log_level = 0 then
-        v_record_count := c_expected_log_record_number;
-    else
-        v_record_count := 0;
-    end if;
     
     select count(*)
       into v_actual_count
       from integration_log
      where integration_run_id = :integration_run_id;
     
-    if v_record_count &lt;&gt; v_actual_count then
-        pkg_test_integration.test_failed(p_integration_name =&gt; v_integration_name, p_error =&gt; &apos;Invalid number of Integration Logs. &apos; ||
-        to_char(v_actual_count) || &apos; but expected &apos; || to_char(v_record_count), p_integration_run_id =&gt; :integration_run_id);
+    if c_expected_log_record_number &lt;&gt; v_actual_count then
+        pkg_test_integration.test_failed(p_integration_name =&gt; v_integration_name, 
+        p_error =&gt; &apos;Invalid number of Integration Logs. &apos; || to_char(v_actual_count) || &apos; but expected &apos; 
+        || to_char(c_expected_log_record_number), p_integration_run_id =&gt; :integration_run_id);
     else
         pkg_test_integration.test_succeed(v_integration_name, :integration_run_id);
     end if;
